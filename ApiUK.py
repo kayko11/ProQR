@@ -11,7 +11,7 @@ username = os.environ.get("API_USER")
 password = os.environ.get("API_KEY")
 
 @app.route('/', defaults={'path': ''}, methods=['POST'])
-@app.route('/<path:path>', methods=['POST'])
+@app.route('/<path:path>', methods=['POST', 'GET'])
 def reroute(path):
     if username and password:
         headers = {
