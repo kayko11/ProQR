@@ -1,7 +1,7 @@
-import os
-import requests
 from flask import Flask, request, Response
 from pymongo import MongoClient
+import requests
+import os
 
 app = Flask(__name__)
 
@@ -17,7 +17,8 @@ collection = db["mycollection"]
 username = os.environ.get("API_USER")
 password = os.environ.get("API_KEY")
 
-@app.route('/', defaults={'path': ''}, methods=['POST','GET'])
+
+@app.route('/', defaults={'path': ''}, methods=['POST', 'GET'])
 @app.route('/<path:path>', methods=['POST', 'GET'])
 def reroute(path):
     if username and password:
@@ -28,27 +29,28 @@ def reroute(path):
     else:
         headers = {'Content-Type': 'application/json'}
 
+    # Send request to external api
     api_response = requests.request(
         method=request.method,
-        url=api_endpoint + '/' + path,
-        headers=headers,
+        url=api_endpoint + '/' + path,headers=headers,
         json=request.json
     )
-    # Print the raw response for debugging
-    print(api_response.text)
+
     try:
+        # insert response data into MongoDB
         collection.insert_one(api_response.json())
         print("Data stored successfully")
     except Exception as e:
-        print("error storing data")
+        print("Error storing data")
         print(e)
-    ### Return the response from the target API as a chunked response
+
+    # Return the response
     return Response(
         api_response.text,
         status=api_response.status_code,
         mimetype='application/json'
     )
 
-
 if __name__ == '__main__':
     app.run()
+
